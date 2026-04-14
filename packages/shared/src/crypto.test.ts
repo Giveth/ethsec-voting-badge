@@ -15,4 +15,11 @@ describe("crypto", () => {
   it("sha256Hex produces 0x-prefixed 32-byte hex", () => {
     expect(sha256Hex("hello")).toMatch(/^0x[0-9a-f]{64}$/);
   });
+  it("rejects ciphertext tampering", () => {
+    const { publicKey, secretKey } = ml_kem768.keygen();
+    const { bundleB64 } = encryptPayload({ a: 1 }, publicKey);
+    // flip one char in the base64
+    const tampered = bundleB64.slice(0, -2) + (bundleB64.slice(-2) === "AA" ? "BB" : "AA");
+    expect(() => decryptBundle(tampered, secretKey)).toThrow();
+  });
 });
