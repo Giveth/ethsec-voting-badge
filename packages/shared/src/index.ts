@@ -1,1 +1,1 @@
-export const SHARED_PKG = "@ethsec/shared";
+export * from "./eip712.js";
