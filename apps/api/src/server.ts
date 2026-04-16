@@ -5,17 +5,40 @@ import { loadEnv, type Env } from "./config.js";
 import { makeDb, type DB } from "./db/client.js";
 import { configRoute } from "./routes/config.js";
 import { tokenStatusRoute } from "./routes/token-status.js";
+import { submitRoute } from "./routes/submit.js";
+import {
+  makeOwnershipChecker,
+  makePublicClient,
+  type OwnershipChecker,
+} from "./onchain.js";
 
 export interface BuildServerOptions {
   /** Override the DB (used by tests with pg-mem). Defaults to {@link makeDb}(env.DATABASE_URL). */
   db?: DB;
   /** Override the env (used by tests). Defaults to {@link loadEnv}(). */
   env?: Env;
+  /**
+   * Override the onchain ownership checker. Pass `null` to disable the
+   * check entirely (e.g. /submit tests that don't want to hit an RPC).
+   * Default: build one from `env.RPC_URL` + `env.BADGE_CONTRACT`, or
+   * `null` if `RPC_URL` is unset.
+   */
+  ownership?: OwnershipChecker | null;
 }
 
 export async function buildServer(opts: BuildServerOptions = {}) {
   const env = opts.env ?? loadEnv();
   const db = opts.db ?? makeDb(env.DATABASE_URL);
+
+  let ownership: OwnershipChecker | null;
+  if (opts.ownership !== undefined) {
+    ownership = opts.ownership;
+  } else if (env.RPC_URL) {
+    const client = makePublicClient(env.CHAIN_ID, env.RPC_URL);
+    ownership = makeOwnershipChecker(client, env.BADGE_CONTRACT as `0x${string}`);
+  } else {
+    ownership = null;
+  }
 
   const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? "info" } });
   await app.register(cors, { origin: env.CORS_ALLOWED_ORIGIN });
@@ -24,6 +47,7 @@ export async function buildServer(opts: BuildServerOptions = {}) {
   app.get("/health", async () => ({ ok: true }));
   await configRoute(app, env);
   await tokenStatusRoute(app, db);
+  await submitRoute(app, { db, env, ownership });
 
   return app;
 }

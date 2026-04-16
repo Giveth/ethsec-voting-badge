@@ -23,6 +23,7 @@
     "zod": "^3.23.0"
   },
   "devDependencies": {
+    "@noble/post-quantum": "^0.2.1",
     "@types/node": "^20.11.0",
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.24.0",
