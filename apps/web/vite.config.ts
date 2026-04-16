@@ -8,7 +8,7 @@ export default defineConfig({
   server: {
     port: 5173,
     // Allow localtunnel hostnames so the dev server can be reached through the tunnel.
-    allowedHosts: [".loca.lt"],
+    allowedHosts: [".loca.lt", ".trycloudflare.com"],
   },
   test: {
     environment: "jsdom",
