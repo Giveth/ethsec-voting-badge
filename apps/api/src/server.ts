@@ -6,6 +6,7 @@ import { makeDb, type DB } from "./db/client.js";
 import { configRoute } from "./routes/config.js";
 import { tokenStatusRoute } from "./routes/token-status.js";
 import { submitRoute } from "./routes/submit.js";
+import { adminExportRoute } from "./routes/admin-export.js";
 import {
   makeOwnershipChecker,
   makePublicClient,
@@ -48,6 +49,7 @@ export async function buildServer(opts: BuildServerOptions = {}) {
   await configRoute(app, env);
   await tokenStatusRoute(app, db);
   await submitRoute(app, { db, env, ownership });
+  await adminExportRoute(app, db, env);
 
   return app;
 }
