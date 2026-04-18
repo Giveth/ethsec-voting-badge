@@ -5,6 +5,7 @@
   "scripts": {
     "keygen": "tsx ./generate-keypair.ts",
     "decrypt": "tsx ./decrypt-export.ts",
+    "sign-offline": "tsx ./sign-offline.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -12,6 +13,7 @@
     "@ethsec/shared": "workspace:*",
     "@noble/hashes": "^1.5.0",
     "@noble/post-quantum": "^0.2.1",
+    "ethers": "^6.16.0",
     "tsx": "^4.16.0",
     "viem": "^2.21.0"
   },

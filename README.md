@@ -58,10 +58,14 @@ Two sub-flows, both on the same page:
      (MetaMask, Rabby, Frame, or a hardware wallet plugged in). Signs via
      wagmi's normal EIP-712 flow.
    - **Sign externally** — copy the EIP-712 payload JSON, sign with your
-     own tool (Foundry's `cast wallet sign-typed-data`, MyEtherWallet's
-     offline message signer, an ethers.js script), paste the `0x…` signature
-     back into the form. The page verifies the signature recovers to the
-     holder wallet before allowing export.
+     own tool, paste the `0x…` signature back into the form. Two ready-
+     to-paste paths shown in the UI: Foundry's `cast wallet sign-typed-data`
+     for that crowd, and our ethers-based `pnpm sign-offline` script (see
+     `scripts/sign-offline.ts`, patterned after
+     [pcaversaccio/raw-tx](https://github.com/pcaversaccio/raw-tx) — same
+     ergonomics, just EIP-712 instead of raw-transaction). Anything that
+     produces a valid EIP-712 signature works; the page verifies the
+     signature recovers to the holder wallet before allowing export.
 5. The signed blob downloads as `ethsec-submission-badge-<id>.json`.
 6. When you reach an online machine, open this same app, pick **Offline**
    again, and use the **Submit a signed blob** section near the bottom to

@@ -267,9 +267,16 @@ export function OfflineApp({ onBack }: Props): JSX.Element {
 
   const castOneLiner = useMemo(() => {
     if (prep.status !== "ready") return "";
-    // cast wallet sign-typed-data expects a single JSON arg.
     return `cast wallet sign-typed-data --data '${typedJsonPretty.replace(/'/g, "'\\''")}' --private-key $PRIVATE_KEY`;
   }, [prep, typedJsonPretty]);
+
+  const ethersScriptSnippet = useMemo(() => {
+    if (prep.status !== "ready") return "";
+    return `# save the JSON above as payload.json, then:
+echo "PRIVATE_KEY=0x..." > .env
+pnpm --filter @ethsec/scripts sign-offline --in payload.json --out sig.txt
+# the 0x… signature lands in sig.txt`;
+  }, [prep]);
 
   return (
     <main className="min-h-screen flex flex-col items-center px-4 py-8 sm:py-14">
@@ -397,14 +404,26 @@ export function OfflineApp({ onBack }: Props): JSX.Element {
                       2) Sign it with your tool of choice
                     </p>
                     <p className="text-xs text-white/40 leading-relaxed">
-                      Works with Foundry&apos;s <span className="font-mono text-white/60">cast</span>, MyEtherWallet&apos;s
-                      offline message signer, Frame, a hardware wallet via MetaMask/Rabby on the same machine,
-                      or any script that produces a valid EIP-712 signature.
+                      Any EIP-712 signer works: Foundry&apos;s <span className="font-mono text-white/60">cast</span>,
+                      an ethers.js script, MyEtherWallet&apos;s offline message signer, Frame, or a hardware wallet
+                      via MetaMask/Rabby running on this machine. Two ready-to-paste snippets:
                     </p>
-                    <pre className="max-h-32 overflow-auto rounded-xl bg-black/40 border border-white/10 px-3 py-2 text-[10px] font-mono text-white/60 whitespace-pre-wrap break-all">
-                      {castOneLiner}
-                    </pre>
-                    <CopyButton text={castOneLiner} label="Copy cast command" />
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-medium text-white/50 uppercase tracking-wider">cast (Foundry)</p>
+                      <pre className="max-h-32 overflow-auto rounded-xl bg-black/40 border border-white/10 px-3 py-2 text-[10px] font-mono text-white/60 whitespace-pre-wrap break-all">
+                        {castOneLiner}
+                      </pre>
+                      <CopyButton text={castOneLiner} label="Copy cast command" />
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-medium text-white/50 uppercase tracking-wider">
+                        ethers.js (our sign-offline script — pattern after pcaversaccio/raw-tx)
+                      </p>
+                      <pre className="max-h-32 overflow-auto rounded-xl bg-black/40 border border-white/10 px-3 py-2 text-[10px] font-mono text-white/60 whitespace-pre-wrap break-all">
+                        {ethersScriptSnippet}
+                      </pre>
+                      <CopyButton text={ethersScriptSnippet} label="Copy sign-offline command" />
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <p className="text-xs font-medium text-white/60 uppercase tracking-wider">
