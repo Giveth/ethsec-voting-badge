@@ -52,4 +52,4 @@ COPY Caddyfile /etc/caddy/Caddyfile
 EXPOSE 80 443
 
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 --start-period=10s \
-  CMD wget -qO- http://127.0.0.1/health >/dev/null 2>&1 || exit 1
+  CMD wget -qO- http://127.0.0.1/ >/dev/null 2>&1 || exit 1
