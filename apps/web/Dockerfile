@@ -42,8 +42,8 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
     VITE_WALLETCONNECT_PROJECT_ID=$VITE_WALLETCONNECT_PROJECT_ID \
     VITE_ENCRYPTION_PUBLIC_KEY_HEX=$VITE_ENCRYPTION_PUBLIC_KEY_HEX
 
+RUN pnpm --filter @ethsec/shared build
 RUN pnpm --filter @ethsec/web build
-
 
 FROM caddy:2-alpine AS runtime
 COPY --from=builder /app/apps/web/dist /srv/web

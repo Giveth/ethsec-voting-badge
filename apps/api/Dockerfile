@@ -23,7 +23,8 @@ COPY packages/shared  packages/shared
 COPY apps/api         apps/api
 COPY tsconfig.base.json ./
 
-# Build (@ethsec/api → dist/)
+# Build workspace packages needed at runtime
+RUN pnpm --filter @ethsec/shared build
 RUN pnpm --filter @ethsec/api build
 
 
