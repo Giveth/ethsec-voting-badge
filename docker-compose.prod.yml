@@ -7,9 +7,9 @@
 
 services:
   api:
-    build: !reset null
-    image: ghcr.io/geleeroyale/ethsec-api:latest
+    build: !reset "null"
+    image: ghcr.io/giveth/ethsec-api:latest
 
   web:
-    build: !reset null
-    image: ghcr.io/geleeroyale/ethsec-web:latest
+    build: !reset "null"
+    image: ghcr.io/giveth/ethsec-web:latest
