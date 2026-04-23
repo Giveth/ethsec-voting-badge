@@ -124,10 +124,17 @@ export async function submitRoute(app: FastifyInstance, deps: SubmitRouteDeps): 
 
         if (existing.length > 0) {
           resubmission = true;
+          // `isNull(supersededAt)` on the UPDATE is intentional belt-and-
+          // suspenders: under concurrent submissions for the same token_id
+          // both transactions may have SELECT'd the same "active" row; one
+          // commits its supersession first, and this guard makes the second
+          // UPDATE a no-op (0 rows matched) instead of silently overwriting
+          // the first supersession's metadata. Either way both transactions
+          // still converge on the partial-unique-index check at INSERT.
           await tx
             .update(submissions)
             .set({ supersededAt: sql`now()`, supersededBy: newId })
-            .where(eq(submissions.id, existing[0]!.id));
+            .where(and(eq(submissions.id, existing[0]!.id), isNull(submissions.supersededAt)));
         }
 
         await tx.insert(submissions).values({

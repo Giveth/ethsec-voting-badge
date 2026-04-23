@@ -77,7 +77,7 @@ async function makeValidSubmission(opts: FreshPayloadOpts = {}): Promise<SubmitR
 
 describe("POST /submit", () => {
   let app: Awaited<ReturnType<typeof buildServer>>;
-  let _db: DB;
+  let db: DB;
   let dispose: () => Promise<void>;
   let reset: () => Promise<void>;
 
@@ -87,7 +87,7 @@ describe("POST /submit", () => {
     process.env.ENCRYPTION_PUBLIC_KEY_HEX = "0xdeadbeef";
     process.env.DATABASE_URL = "postgres://test:test@localhost:5432/test";
     const t = await makeTestDb();
-    _db = t.db;
+    db = t.db;
     dispose = t.dispose;
     reset = t.reset;
     app = await buildServer({ db: t.db, ownership: null });
@@ -130,7 +130,7 @@ describe("POST /submit", () => {
 
     // Two rows should exist for token_id 1010: one superseded, one active.
     const { submissions } = await import("../db/schema.js");
-    const rows = await _db.select().from(submissions);
+    const rows = await db.select().from(submissions);
     const forToken = rows.filter((r) => r.tokenId === "1010");
     expect(forToken.length).toBe(2);
     const active = forToken.filter((r) => r.supersededAt === null);

@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { asc } from "drizzle-orm";
 import { submissions } from "../db/schema.js";
 import type { DB } from "../db/client.js";
 import type { Env } from "../config.js";
@@ -40,7 +41,13 @@ export async function adminExportRoute(
       return reply.code(401).send({ error: "unauthorized" });
     }
 
-    const rows = await db.select().from(submissions);
+    // Explicit ORDER BY so the CSV is deterministic across runs — makes
+    // diffs between exports readable and matches the AdminPage's
+    // "active-first then token_id" display sort.
+    const rows = await db
+      .select()
+      .from(submissions)
+      .orderBy(asc(submissions.tokenId), asc(submissions.submittedAt));
     const lines = rows.map((r) =>
       [
         r.id,

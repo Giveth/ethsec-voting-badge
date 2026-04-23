@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, jsonb, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, jsonb, timestamp, uniqueIndex, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 /**
@@ -29,7 +29,7 @@ export const submissions = pgTable(
     nonce: text("nonce").notNull(),
     submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
     supersededAt: timestamp("superseded_at", { withTimezone: true }),
-    supersededBy: uuid("superseded_by"),
+    supersededBy: uuid("superseded_by").references((): AnyPgColumn => submissions.id, { onDelete: "set null" }),
   },
   (t) => ({
     /**

@@ -146,11 +146,19 @@ export function AdminPage({ onBack }: { onBack: () => void }): JSX.Element {
           });
         }
       }
-      // Sort: active rows first, then superseded (oldest-superseded last).
+      // Sort: active rows first (by tokenId numeric), then superseded
+      // ordered by when they were replaced — most-recently-superseded
+      // first within the block so the history reads top-down.
       decrypted.sort((a, b) => {
         const aSup = a.supersededAt ? 1 : 0;
         const bSup = b.supersededAt ? 1 : 0;
         if (aSup !== bSup) return aSup - bSup;
+        if (aSup === 1) {
+          // Both superseded — order by supersededAt descending.
+          const ta = Date.parse(a.supersededAt) || 0;
+          const tb = Date.parse(b.supersededAt) || 0;
+          if (ta !== tb) return tb - ta;
+        }
         return a.tokenId.localeCompare(b.tokenId, undefined, { numeric: true });
       });
       setRows(decrypted);
