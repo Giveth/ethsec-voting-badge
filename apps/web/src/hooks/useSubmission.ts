@@ -49,15 +49,14 @@ export function useSubmission(): {
         dispatch({ type: "WALLET_READY" });
 
         const config = await getConfig();
-        const status = await getTokenStatus(tokenId);
-        if (status.used) {
-          dispatch({
-            type: "ERROR",
-            code: "already_submitted",
-            message: `Badge ${tokenId} already submitted a voting address.`,
-          });
-          return;
-        }
+        // We intentionally DO NOT short-circuit on `status.used` any more.
+        // Resubmission is now a first-class flow on the server (PR #5) —
+        // /submit marks the old row `superseded_at = now()` and records a
+        // new active row. Blocking here would make the feature unreachable.
+        // Kept the call for potential UX use (e.g. show "this replaces your
+        // current voting address") but the signing/submit path proceeds
+        // regardless.
+        await getTokenStatus(tokenId).catch(() => null);
         dispatch({ type: "CONFIG_LOADED", config });
 
         dispatch({ type: "TOKEN_PICKED", tokenId, votingAddress });
