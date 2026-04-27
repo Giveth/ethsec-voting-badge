@@ -13,17 +13,27 @@
 	encode gzip zstd
 
 	# ----- API proxy -----
-	@api path /health /health/* /config /config/* /submit /submit/* /token-status /token-status/* /admin /admin/*
-	reverse_proxy @api api:3001 {
-		header_up Host {host}
-		header_up X-Forwarded-For {remote_host}
-		header_up X-Forwarded-Proto {scheme}
+	# Use `handle` blocks so routing is explicit, not order-dependent.
+	# Without them, Caddy's directive order runs `try_files` BEFORE
+	# `reverse_proxy` and rewrites /config → /index.html before the
+	# reverse_proxy matcher gets a chance to fire. Result: API paths
+	# silently serve the SPA (front-end gets "Unexpected token '<'"
+	# trying to JSON.parse HTML, and POST /submit returns 405).
+	@api path /health* /config* /submit* /token-status* /admin*
+	handle @api {
+		reverse_proxy api:3001 {
+			header_up Host {host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
 	}
 
 	# ----- Static web bundle (SPA fallback to index.html) -----
-	root * /srv/web
-	try_files {path} /index.html
-	file_server
+	handle {
+		root * /srv/web
+		try_files {path} /index.html
+		file_server
+	}
 
 	# ----- Security headers -----
 	header {
@@ -40,6 +50,20 @@
 		# Remove Caddy's default server header
 		-Server
 	}
+
+	# ----- Cache policy -----
+	# index.html is the entry point that references the content-hashed
+	# JS/CSS bundles in /assets. If browsers cache index.html aggressively,
+	# users keep loading old bundle filenames after a deploy and never see
+	# new code (e.g. validation fixes). Force revalidation on every load.
+	@html path / /index.html
+	header @html Cache-Control "no-cache, must-revalidate"
+
+	# /assets/* filenames are content-hashed (Vite emits e.g.
+	# index-DgJoGALt.js), so they're safe to cache aggressively. A new
+	# deploy emits new filenames + a new index.html that references them.
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
 
 	# ----- Log to stdout so `docker logs` sees requests -----
 	log {
