@@ -64,13 +64,25 @@ git clone https://github.com/griffgiveth/ethsec-voting-badge.git
 cd ethsec-voting-badge
 pnpm install
 
+# Generate the admin keypair (writes keys/public.key + keys/private.key,
+# both gitignored).
+pnpm --filter @ethsec/scripts keygen ./keys
+
+# Create env files and wire the freshly-generated pubkey into the API env.
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+sed -i.bak "s|^ENCRYPTION_PUBLIC_KEY_HEX=.*|ENCRYPTION_PUBLIC_KEY_HEX=$(cat keys/public.key)|" apps/api/.env && rm apps/api/.env.bak
+
 # Start Postgres (Docker)
 docker compose -f apps/api/docker-compose.yml up -d
 
-# Apply schema
-pnpm --filter @ethsec/api db:push
+# Load API env into the shell. The API reads process.env directly — there
+# is no auto .env loader, so commands run in this shell need the values
+# exported up front.
+set -a && source apps/api/.env && set +a
 
-# Run both servers
+# Run both servers. The API applies pending Drizzle migrations on boot,
+# so a fresh database needs no separate db:push step.
 pnpm dev
 # API → http://localhost:3001
 # Web → http://localhost:5174
